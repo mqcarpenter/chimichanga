@@ -21,7 +21,7 @@ echo "Deploying Reading Wrangler via FTP to $HOST..."
 # Use curl to upload files
 for file in index.html style.css app.js manifest.json sw.js; do
     echo "Uploading $file..."
-    curl -s -T "$file" "ftp://$HOST/" --user "$USER:$FTP_PASSWORD"
+    curl -s -k --ssl-reqd -T "$file" "ftp://$HOST/" --user "$USER:$FTP_PASSWORD"
     if [ $? -eq 0 ]; then
         echo "Successfully uploaded $file"
     else
@@ -32,7 +32,7 @@ done
 echo "Uploading API directory..."
 for file in api/config.php api/setup_db.php api/api.php; do
     echo "Uploading $file..."
-    curl -s --ftp-create-dirs -T "$file" "ftp://$HOST/$file" --user "$USER:$FTP_PASSWORD"
+    curl -s -k --ssl-reqd --ftp-create-dirs -T "$file" "ftp://$HOST/$file" --user "$USER:$FTP_PASSWORD"
     if [ $? -eq 0 ]; then
         echo "Successfully uploaded $file"
     else
