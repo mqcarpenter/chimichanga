@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chimichanga - Your Personal Library</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-book-open-reader"></i>
+                <h1>Chimichanga</h1>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="active"><a href="#"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fa-solid fa-book"></i> Library</a></li>
+                <li><a href="#"><i class="fa-solid fa-star"></i> Favorites</a></li>
+                <li><a href="#"><i class="fa-solid fa-chart-line"></i> Statistics</a></li>
+            </ul>
+
+            <div class="user-profile">
+                <div class="avatar">M</div>
+                <div class="user-info">
+                    <span class="name">Matteo</span>
+                    <span class="status">Reading "Dune"</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="search-bar glass-panel">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" placeholder="Search your library..." id="searchInput">
+                </div>
+                <button class="add-btn glass-button"><i class="fa-solid fa-plus"></i> Add Book</button>
+            </header>
+
+            <section class="dashboard-section">
+                <!-- Currently Reading -->
+                <div class="section-header">
+                    <h2>Currently Reading</h2>
+                </div>
+                
+                <div class="book-card highlight-card glass-panel" id="current-book">
+                    <div class="book-cover gradient-placeholder">
+                        <i class="fa-solid fa-book-journal-whills"></i>
+                    </div>
+                    <div class="book-details">
+                        <span class="tag reading-tag">Reading</span>
+                        <h3>Dune</h3>
+                        <p class="author">Frank Herbert</p>
+                        
+                        <div class="progress-container">
+                            <div class="progress-info">
+                                <span>Page 215 of 412</span>
+                                <span>52%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: 52%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button class="primary-btn">Update Progress</button>
+                            <button class="icon-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Up Next -->
+                <div class="section-header mt-8">
+                    <h2>Up Next</h2>
+                    <a href="#" class="view-all">View All</a>
+                </div>
+
+                <div class="book-grid" id="up-next-grid">
+                    <!-- Cards will be populated by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
