@@ -225,7 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // First try to find books by the same author minus the exact title
-            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(author)}&maxResults=15`);
+            const authorQuery = encodeURIComponent(`inauthor:"${author}"`);
+            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${authorQuery}&maxResults=15`);
             const data = await res.json();
             
             similarItems = (data.items || []).filter(item => 
