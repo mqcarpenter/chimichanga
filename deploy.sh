@@ -19,7 +19,7 @@ fi
 echo "Deploying Reading Wrangler via FTP to $HOST..."
 
 # Use curl to upload files
-for file in index.html style.css app.js manifest.json sw.js; do
+for file in index.html style.css app.js manifest.json sw.js icon-192.png icon-512.png; do
     echo "Uploading $file..."
     curl -s -k --ssl-reqd -T "$file" "ftp://$HOST/" --user "$USER:$FTP_PASSWORD"
     if [ $? -eq 0 ]; then

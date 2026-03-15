@@ -8,15 +8,15 @@
   "theme_color": "#3E2723",
   "icons": [
     {
-      "src": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/svgs/solid/hat-cowboy.svg",
+      "src": "./icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/svgs/solid/hat-cowboy.svg",
+      "src": "./icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]

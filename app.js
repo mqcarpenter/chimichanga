@@ -73,18 +73,38 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         
         const select = div.querySelector('select');
-        select.addEventListener('change', (e) => updateBookStatus(book.id, e.target.value));
+        select.addEventListener('change', (e) => updateBookStatus(select, book.id, e.target.value));
         
         return div;
     }
     
-    async function updateBookStatus(id, newStatus) {
-        await fetch(`${API_URL}?action=update_book`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ id, status: newStatus })
-        });
-        loadBooks();
+    async function updateBookStatus(selectElement, id, newStatus) {
+        selectElement.disabled = true;
+        
+        try {
+            await fetch(`${API_URL}?action=update_book`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id, status: newStatus })
+            });
+            
+            // Visual feedback loop
+            const oldBg = selectElement.style.background;
+            const oldColor = selectElement.style.color;
+            selectElement.style.background = 'var(--success)';
+            selectElement.style.color = '#fff';
+            
+            setTimeout(() => {
+                selectElement.style.background = oldBg;
+                selectElement.style.color = oldColor;
+                selectElement.disabled = false;
+                loadBooks(); // Optional: Reload to move the card to the right corral segment
+            }, 800);
+            
+        } catch(e) {
+            selectElement.disabled = false;
+            console.error(e);
+        }
     }
     
     window.deleteBook = async (id) => {
@@ -124,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsGrid.innerHTML = '';
             if (data.items) {
                 data.items.forEach(item => {
-                    resultsGrid.appendChild(createSearchResultCard(item));
+                    resultsGrid.appendChild(createSearchResultCard(item, false));
                 });
             } else {
                 resultsGrid.innerHTML = '<p>No books found.</p>';
@@ -134,12 +154,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    function createSearchResultCard(item) {
+    function createSearchResultCard(item, isSimilar = false) {
         const vol = item.volumeInfo;
         const cover = vol.imageLinks?.thumbnail ? vol.imageLinks.thumbnail.replace('http:', 'https:') : '';
         const title = vol.title || 'Unknown Title';
         const author = vol.authors ? vol.authors.join(', ') : 'Unknown Author';
         const rating = vol.averageRating || 0;
+        
+        let reasonHtml = '';
+        if (isSimilar) {
+            // Give a hint as to why it matched based on category
+            const category = vol.categories ? vol.categories[0] : 'Related Genre';
+            reasonHtml = `<p style="font-size: 0.75rem; color: var(--saddle-orange); font-weight: bold; margin-bottom: 5px;">
+                            <i class="fa-solid fa-tag"></i> Match: ${category}</p>`;
+        }
         
         const div = document.createElement('div');
         div.className = 'book-card';
@@ -147,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="card-header" style="height:140px;">
                 ${cover ? `<img src="${cover}" class="book-cover" style="width:90px;">` : `<div class="book-cover" style="width:90px;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-book"></i></div>`}
                 <div class="book-info" style="padding:10px;">
+                    ${reasonHtml}
                     <h3 class="book-title" style="font-size:1rem;">${title}</h3>
                     <p class="book-author" style="font-size:0.8rem;">${author}</p>
                     <div class="ratings" style="margin-top:auto">
@@ -226,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         batch.forEach(item => {
-            resultsGrid.appendChild(createSearchResultCard(item));
+            resultsGrid.appendChild(createSearchResultCard(item, true));
         });
         
         if (similarIndex + 3 < similarItems.length) {
