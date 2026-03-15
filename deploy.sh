@@ -1,5 +1,5 @@
 #!/bin/bash
-# Chimichanga FTP Deployment Script
+# Chimichanga/Reading Wrangler FTP Deployment Script
 
 # Load environment variables if .env.deploy exists
 if [ -f .env.deploy ]; then
@@ -16,12 +16,23 @@ if [ -z "$FTP_PASSWORD" ]; then
     exit 1
 fi
 
-echo "Deploying Chimichanga via FTP to $HOST..."
+echo "Deploying Reading Wrangler via FTP to $HOST..."
 
-# Use curl to upload files (usually more reliable than interactive ftp command)
-for file in index.html style.css app.js; do
+# Use curl to upload files
+for file in index.html style.css app.js manifest.json sw.js; do
     echo "Uploading $file..."
-    curl -T "$file" "ftp://$HOST/" --user "$USER:$FTP_PASSWORD"
+    curl -s -T "$file" "ftp://$HOST/" --user "$USER:$FTP_PASSWORD"
+    if [ $? -eq 0 ]; then
+        echo "Successfully uploaded $file"
+    else
+        echo "Failed to upload $file"
+    fi
+done
+
+echo "Uploading API directory..."
+for file in api/config.php api/setup_db.php api/api.php; do
+    echo "Uploading $file..."
+    curl -s --ftp-create-dirs -T "$file" "ftp://$HOST/$file" --user "$USER:$FTP_PASSWORD"
     if [ $? -eq 0 ]; then
         echo "Successfully uploaded $file"
     else

@@ -1,76 +1,246 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Mock Data for "Up Next" queue
-    const queue = [
-        {
-            title: "Project Hail Mary",
-            author: "Andy Weir",
-            coverGradient: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            icon: "fa-rocket"
-        },
-        {
-            title: "Atomic Habits",
-            author: "James Clear",
-            coverGradient: "linear-gradient(135deg, #10b981, #047857)",
-            icon: "fa-chart-pie"
-        },
-        {
-            title: "Sapiens",
-            author: "Yuval Noah Harari",
-            coverGradient: "linear-gradient(135deg, #f59e0b, #b45309)",
-            icon: "fa-earth-americas"
-        },
-        {
-            title: "The Three-Body Problem",
-            author: "Cixin Liu",
-            coverGradient: "linear-gradient(135deg, #8b5cf6, #5b21b6)",
-            icon: "fa-user-astronaut"
+    const API_URL = 'api/api.php';
+    let allBooks = [];
+    
+    // UI Elements
+    const currentlyReadingGrid = document.getElementById('currently-reading-grid');
+    const corralGrid = document.getElementById('corral-grid');
+    const searchModal = document.getElementById('search-modal');
+    const similarModal = document.getElementById('similar-modal');
+    
+    // Load Books
+    async function loadBooks() {
+        try {
+            const res = await fetch(`${API_URL}?action=get_books`);
+            const json = await res.json();
+            if (json.success) {
+                allBooks = json.data;
+                renderBooks();
+            }
+        } catch (e) {
+            console.error("Failed to load books from trail", e);
         }
-    ];
-
-    const upNextGrid = document.getElementById('up-next-grid');
-
-    // Populate the grid
-    queue.forEach(book => {
-        const card = document.createElement('div');
-        card.className = 'grid-card glass-panel';
-        card.innerHTML = `
-            <div class="gradient-placeholder" style="background: ${book.coverGradient}">
-                <i class="fa-solid ${book.icon}"></i>
+    }
+    
+    function renderBooks() {
+        currentlyReadingGrid.innerHTML = '';
+        corralGrid.innerHTML = '';
+        
+        const reading = allBooks.filter(b => b.status === 'currently-reading');
+        const others = allBooks.filter(b => b.status !== 'currently-reading');
+        
+        if (reading.length === 0) {
+            currentlyReadingGrid.innerHTML = '<p class="empty-msg">No books currently on the trail.</p>';
+        } else {
+            reading.forEach(b => currentlyReadingGrid.appendChild(createBookCard(b)));
+        }
+        
+        if (others.length === 0) {
+            corralGrid.innerHTML = '<p class="empty-msg">The corral is empty.</p>';
+        } else {
+            others.forEach(b => corralGrid.appendChild(createBookCard(b)));
+        }
+    }
+    
+    function createBookCard(book) {
+        const div = document.createElement('div');
+        div.className = 'book-card';
+        
+        const coverPart = book.cover_url ? 
+            `<img src="${book.cover_url}" alt="Cover" class="book-cover">` : 
+            `<div class="book-cover" style="display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--leather-dark);"><i class="fa-solid fa-book"></i></div>`;
+        
+        div.innerHTML = `
+            <div class="card-header">
+                ${coverPart}
+                <div class="book-info">
+                    <h3 class="book-title">${book.title}</h3>
+                    <p class="book-author">by ${book.author}</p>
+                    <div class="ratings">
+                        <span><i class="fa-solid fa-star"></i> Me: ${book.user_rating || '-'}</span>
+                    </div>
+                    <select class="status-select" data-id="${book.id}">
+                        <option value="to-read" ${book.status === 'to-read' ? 'selected' : ''}>To Read</option>
+                        <option value="currently-reading" ${book.status === 'currently-reading' ? 'selected' : ''}>Currently Reading</option>
+                        <option value="read" ${book.status === 'read' ? 'selected' : ''}>Read</option>
+                    </select>
+                </div>
             </div>
-            <div class="card-info">
-                <h4>${book.title}</h4>
-                <p>${book.author}</p>
+            <div class="book-actions">
+                <button class="action-btn" onclick="deleteBook(${book.id})"><i class="fa-solid fa-trash"></i> Drop</button>
+                <button class="action-btn find-similar" onclick="openSimilar('${book.title.replace(/'/g, "\\'")}', '${book.author.replace(/'/g, "\\'")}')"><i class="fa-solid fa-compass"></i> Similar Finds</button>
             </div>
         `;
-        // Add a micro-interaction
-        card.addEventListener('click', () => {
-             card.style.transform = 'scale(0.95)';
-             setTimeout(() => {
-                 card.style.transform = '';
-             }, 150);
-        });
-        upNextGrid.appendChild(card);
-    });
-
-    // Add button interaction
-    const addBtn = document.querySelector('.add-btn');
-    addBtn.addEventListener('click', () => {
-        const icon = addBtn.querySelector('i');
-        icon.classList.remove('fa-plus');
-        icon.classList.add('fa-spinner', 'fa-spin');
         
-        setTimeout(() => {
-            icon.classList.remove('fa-spinner', 'fa-spin');
-            icon.classList.add('fa-check');
-            addBtn.style.background = 'rgba(16, 185, 129, 0.2)';
-            addBtn.style.color = 'var(--success)';
-            
-            setTimeout(() => {
-                icon.classList.remove('fa-check');
-                icon.classList.add('fa-plus');
-                addBtn.style.background = '';
-                addBtn.style.color = '';
-            }, 2000);
-        }, 1000);
+        const select = div.querySelector('select');
+        select.addEventListener('change', (e) => updateBookStatus(book.id, e.target.value));
+        
+        return div;
+    }
+    
+    async function updateBookStatus(id, newStatus) {
+        await fetch(`${API_URL}?action=update_book`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id, status: newStatus })
+        });
+        loadBooks();
+    }
+    
+    window.deleteBook = async (id) => {
+        if(confirm("Kick this book out of the corral?")) {
+            await fetch(`${API_URL}?action=delete_book`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id })
+            });
+            loadBooks();
+        }
+    };
+    
+    // Modals Handling
+    document.getElementById('add-book-btn').addEventListener('click', () => {
+        searchModal.classList.remove('hidden');
     });
+    
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.target.closest('.modal').classList.add('hidden');
+        });
+    });
+    
+    // Google Books Search
+    document.getElementById('google-search-btn').addEventListener('click', async () => {
+        const query = document.getElementById('google-search-input').value;
+        if (!query) return;
+        
+        const resultsGrid = document.getElementById('search-results');
+        resultsGrid.innerHTML = '<p>Searching the plains...</p>';
+        
+        try {
+            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10`);
+            const data = await res.json();
+            
+            resultsGrid.innerHTML = '';
+            if (data.items) {
+                data.items.forEach(item => {
+                    resultsGrid.appendChild(createSearchResultCard(item));
+                });
+            } else {
+                resultsGrid.innerHTML = '<p>No books found.</p>';
+            }
+        } catch(e) {
+            resultsGrid.innerHTML = '<p>Error searching.</p>';
+        }
+    });
+    
+    function createSearchResultCard(item) {
+        const vol = item.volumeInfo;
+        const cover = vol.imageLinks?.thumbnail ? vol.imageLinks.thumbnail.replace('http:', 'https:') : '';
+        const title = vol.title || 'Unknown Title';
+        const author = vol.authors ? vol.authors.join(', ') : 'Unknown Author';
+        const rating = vol.averageRating || 0;
+        
+        const div = document.createElement('div');
+        div.className = 'book-card';
+        div.innerHTML = `
+            <div class="card-header" style="height:140px;">
+                ${cover ? `<img src="${cover}" class="book-cover" style="width:90px;">` : `<div class="book-cover" style="width:90px;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-book"></i></div>`}
+                <div class="book-info" style="padding:10px;">
+                    <h3 class="book-title" style="font-size:1rem;">${title}</h3>
+                    <p class="book-author" style="font-size:0.8rem;">${author}</p>
+                    <div class="ratings" style="margin-top:auto">
+                        <span><i class="fa-solid fa-users"></i> ${rating}/5</span>
+                    </div>
+                </div>
+            </div>
+            <div class="book-actions">
+                <button class="action-btn find-similar" style="width:100%"><i class="fa-solid fa-plus"></i> Add to Corral</button>
+            </div>
+        `;
+        
+        div.querySelector('button').addEventListener('click', async () => {
+            await fetch(`${API_URL}?action=add_book`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    title, author, cover_url: cover, 
+                    google_books_id: item.id, community_rating: rating, status: 'to-read'
+                })
+            });
+            searchModal.classList.add('hidden');
+            loadBooks();
+        });
+        
+        return div;
+    }
+    
+    // Similar Finds logic
+    let similarItems = [];
+    let similarIndex = 0;
+    
+    window.openSimilar = async (title, author) => {
+        document.getElementById('similar-target-title').innerText = title;
+        similarModal.classList.remove('hidden');
+        const resultsGrid = document.getElementById('similar-results');
+        resultsGrid.innerHTML = '<p>Scouting for similar reads...</p>';
+        document.getElementById('cycle-similar-btn').style.display = 'none';
+        
+        try {
+            // First try to find books by the same author minus the exact title
+            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(author)}&maxResults=15`);
+            const data = await res.json();
+            
+            similarItems = (data.items || []).filter(item => 
+                item.volumeInfo.title && !item.volumeInfo.title.toLowerCase().includes(title.toLowerCase())
+            );
+            
+            // If we don't have enough, append a generic subject/title-based search
+            if (similarItems.length < 3) {
+                const subjectQuery = encodeURIComponent(title.split(' ')[0] + " " + (title.split(' ')[1] || ""));
+                const extraRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${subjectQuery}&maxResults=15`);
+                const extraData = await extraRes.json();
+                const moreItems = (extraData.items || []).filter(item => 
+                    item.volumeInfo.title && !item.volumeInfo.title.toLowerCase().includes(title.toLowerCase())
+                );
+                similarItems = [...similarItems, ...moreItems];
+            }
+            
+            similarIndex = 0;
+            renderSimilarBatch();
+        } catch(e) {
+            resultsGrid.innerHTML = '<p>The trail went cold checking for similar books.</p>';
+        }
+    };
+    
+    function renderSimilarBatch() {
+        const resultsGrid = document.getElementById('similar-results');
+        resultsGrid.innerHTML = '';
+        
+        const batch = similarItems.slice(similarIndex, similarIndex + 3);
+        
+        if (batch.length === 0) {
+            resultsGrid.innerHTML = '<p>No more similar books found on this trail.</p>';
+            document.getElementById('cycle-similar-btn').style.display = 'none';
+            return;
+        }
+        
+        batch.forEach(item => {
+            resultsGrid.appendChild(createSearchResultCard(item));
+        });
+        
+        if (similarIndex + 3 < similarItems.length) {
+            document.getElementById('cycle-similar-btn').style.display = 'inline-block';
+        } else {
+            document.getElementById('cycle-similar-btn').style.display = 'none';
+        }
+    }
+    
+    document.getElementById('cycle-similar-btn').addEventListener('click', () => {
+        similarIndex += 3;
+        renderSimilarBatch();
+    });
+    
+    // Initial Load
+    loadBooks();
 });
