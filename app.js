@@ -224,24 +224,47 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cycle-similar-btn').style.display = 'none';
         
         try {
-            // First try to find books by the same author minus the exact title
-            const authorQuery = encodeURIComponent(`inauthor:"${author}"`);
-            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${authorQuery}&maxResults=15`);
+            const searchAuthor = author.split(',')[0].trim();
+            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent('"' + searchAuthor + '"')}&maxResults=15`);
             const data = await res.json();
             
-            similarItems = (data.items || []).filter(item => 
-                item.volumeInfo.title && !item.volumeInfo.title.toLowerCase().includes(title.toLowerCase())
-            );
-            
-            // If we don't have enough, append a generic subject/title-based search
-            if (similarItems.length < 3) {
-                const subjectQuery = encodeURIComponent(title.split(' ')[0] + " " + (title.split(' ')[1] || ""));
-                const extraRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${subjectQuery}&maxResults=15`);
-                const extraData = await extraRes.json();
-                const moreItems = (extraData.items || []).filter(item => 
+            if (data.error) {
+                // Fallback to OpenLibrary if Google Books rate limits (429)
+                const olRes = await fetch(`https://openlibrary.org/search.json?author=${encodeURIComponent(searchAuthor)}&limit=15`);
+                const olData = await olRes.json();
+                const docs = olData.docs || [];
+                similarItems = docs.map(doc => ({
+                    id: doc.key ? doc.key.replace('/works/', '') : Math.random().toString(),
+                    volumeInfo: {
+                        title: doc.title,
+                        authors: doc.author_name || ['Unknown Author'],
+                        averageRating: doc.ratings_average || 0,
+                        categories: doc.subject || ['Related Genre'],
+                        pageCount: doc.number_of_pages_median || 0,
+                        imageLinks: {
+                            thumbnail: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : ''
+                        }
+                    }
+                })).filter(item => 
                     item.volumeInfo.title && !item.volumeInfo.title.toLowerCase().includes(title.toLowerCase())
                 );
-                similarItems = [...similarItems, ...moreItems];
+            } else {
+                similarItems = (data.items || []).filter(item => 
+                    item.volumeInfo.title && !item.volumeInfo.title.toLowerCase().includes(title.toLowerCase())
+                );
+                
+                // If we don't have enough, append a generic subject/title-based search
+                if (similarItems.length < 3) {
+                    const subjectQuery = encodeURIComponent(title.split(' ')[0] + " " + (title.split(' ')[1] || ""));
+                    const extraRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${subjectQuery}&maxResults=15`);
+                    const extraData = await extraRes.json();
+                    if (!extraData.error) {
+                        const moreItems = (extraData.items || []).filter(item => 
+                            item.volumeInfo.title && !item.volumeInfo.title.toLowerCase().includes(title.toLowerCase())
+                        );
+                        similarItems = [...similarItems, ...moreItems];
+                    }
+                }
             }
             
             similarIndex = 0;
