@@ -27,6 +27,15 @@ try {
             echo json_encode(['success' => true, 'data' => $books]);
             break;
             
+        case 'migrate':
+            try {
+                $db->exec("ALTER TABLE wrangler_books ADD COLUMN description TEXT");
+                echo json_encode(['success' => true, 'message' => 'Added description column.']);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            }
+            break;
+            
         case 'add_book':
             $input = json_decode(file_get_contents('php://input'), true);
             $title = $input['title'] ?? '';
@@ -35,6 +44,7 @@ try {
             $google_books_id = $input['google_books_id'] ?? null;
             $community_rating = $input['community_rating'] ?? 0;
             $status = $input['status'] ?? 'to-read';
+            $description = $input['description'] ?? '';
             
             if (empty($title)) {
                 echo json_encode(['success' => false, 'error' => 'Title is required']);
@@ -42,9 +52,9 @@ try {
             }
             
             $stmt = $db->prepare("INSERT INTO wrangler_books 
-                (title, author, cover_url, google_books_id, community_rating, status) 
-                VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$title, $author, $cover_url, $google_books_id, $community_rating, $status]);
+                (title, author, cover_url, google_books_id, community_rating, status, description) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$title, $author, $cover_url, $google_books_id, $community_rating, $status, $description]);
             
             echo json_encode(['success' => true, 'id' => $db->lastInsertId()]);
             break;

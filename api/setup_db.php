@@ -14,6 +14,7 @@ try {
             google_books_id VARCHAR(50) UNIQUE,
             goodreads_id VARCHAR(50) UNIQUE,
             status ENUM('read', 'currently-reading', 'to-read') DEFAULT 'to-read',
+            description TEXT,
             user_rating TINYINT DEFAULT 0,
             community_rating DECIMAL(3,2) DEFAULT 0.00,
             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

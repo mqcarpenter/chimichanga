@@ -24,10 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function renderBooks() {
         currentlyReadingGrid.innerHTML = '';
-        corralGrid.innerHTML = '';
-        
-        const reading = allBooks.filter(b => b.status === 'currently-reading');
-        const others = allBooks.filter(b => b.status !== 'currently-reading');
+        const toRead = allBooks.filter(b => b.status === 'to-read');
+        const read = allBooks.filter(b => b.status === 'read');
         
         if (reading.length === 0) {
             currentlyReadingGrid.innerHTML = '<p class="empty-msg">No books currently on the trail.</p>';
@@ -35,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
             reading.forEach(b => currentlyReadingGrid.appendChild(createBookCard(b)));
         }
         
-        if (others.length === 0) {
-            corralGrid.innerHTML = '<p class="empty-msg">The corral is empty.</p>';
-        } else {
-            others.forEach(b => corralGrid.appendChild(createBookCard(b)));
-        }
+        document.getElementById('to-read-grid').innerHTML = toRead.length ? '' : '<p class="empty-msg">The corral is empty.</p>';
+        toRead.forEach(b => document.getElementById('to-read-grid').appendChild(createBookCard(b)));
+
+        document.getElementById('read-grid').innerHTML = read.length ? '' : '<p class="empty-msg">The corral is empty.</p>';
+        read.forEach(b => document.getElementById('read-grid').appendChild(createBookCard(b)));
     }
     
     function createBookCard(book) {
@@ -56,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="book-info">
                     <h3 class="book-title">${book.title}</h3>
                     <p class="book-author">by ${book.author}</p>
+                    ${book.description ? `<p style="font-size: 0.8rem; margin: 8px 0; border-top: 1px dashed var(--leather-medium); padding-top: 8px;">${book.description}</p>` : ''}
                     <div class="ratings">
                         <span><i class="fa-solid fa-star"></i> Me: ${book.user_rating || '-'}</span>
                     </div>
@@ -161,10 +160,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const author = vol.authors ? vol.authors.join(', ') : 'Unknown Author';
         const rating = vol.averageRating || 0;
         
+        // Extract 2 sentence description
+        let rawDesc = (vol.description || '').replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+        let sentences = rawDesc.match(/[^.!?]+[.!?]+/g) || [];
+        let cleanDesc = sentences.slice(0, 2).join(' ').trim();
+        if(!cleanDesc) cleanDesc = rawDesc.substring(0, 100) + (rawDesc.length > 100 ? '...' : '');
+
         let reasonHtml = '';
         if (isSimilar) {
             // Give a hint as to why it matched based on category
             const category = vol.categories ? vol.categories[0] : 'Related Genre';
+            const pages = vol.pageCount ? `~${vol.pageCount} pages` : '';
+            cleanDesc = `Suggested because: by ${author}, ${pages}, subject ${category}`.replace(/,\s*,/g, ',');
             reasonHtml = `<p style="font-size: 0.75rem; color: var(--saddle-orange); font-weight: bold; margin-bottom: 5px;">
                             <i class="fa-solid fa-tag"></i> Match: ${category}</p>`;
         }
@@ -194,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     title, author, cover_url: cover, 
-                    google_books_id: item.id, community_rating: rating, status: 'to-read'
+                    google_books_id: item.id, community_rating: rating, status: 'to-read', description: cleanDesc
                 })
             });
             searchModal.classList.add('hidden');
