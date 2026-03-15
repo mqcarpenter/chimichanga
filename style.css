@@ -1,19 +1,19 @@
 :root {
-    /* Colter Wall Cowboy Theme Palette */
-    --leather-dark: #e5dfd3; /* Prairie Tan Background */
-    --leather-medium: #c0c6cc; /* Sky Grey cards/accents */
-    --leather-light: #a39b8a;
-    --parchment: #ffffff; /* White cards */
-    --parchment-dark: #f0f0f0;
-    --saddle-orange: #d13d3d; /* Faded Red */
-    --saddle-hover: #b83333;
-    --text-dark: #2c1e16; /* Dark Brown */
-    --text-muted: #5a4b41;
+    /* Colter Wall Little Songs Palette */
+    --leather-dark: #b8aba0; /* Dusty Prairie grass base */
+    --leather-medium: #888d92; /* Faded blue/grey sky */
+    --leather-light: #52473f; /* Dark horse brown */
+    --parchment: #f6f5f3; /* White border/text background */
+    --parchment-dark: #e8e6e1;
+    --saddle-orange: #ea5054; /* Pinkish western Red */
+    --saddle-hover: #c63337;
+    --text-dark: #1b1918; /* Near Black */
+    --text-muted: #52473f;
     --gold: #d4af37;
     
     /* Typography */
     --font-heading: 'Rye', cursive;
-    --font-body: 'Roboto Slab', serif;
+    --font-body: 'Arvo', serif; /* Blocky serif matching the movie poster style */
     
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -28,17 +28,19 @@
 }
 
 body {
-    background-color: var(--leather-dark);
+    background-color: var(--leather-medium);
     /* Subtle texture disabled for flat modern western feel */
     color: var(--text-dark);
     font-family: var(--font-body);
+    font-weight: 700;
     min-height: 100vh;
+    border: 20px solid var(--parchment); /* White vignette border from album */
 }
 
 /* Wood Navigation Panel */
 .wood-panel {
-    background: var(--leather-dark);
-    border-bottom: 4px solid var(--saddle-orange);
+    background: var(--parchment);
+    border-bottom: 4px solid var(--leather-dark);
     padding: 15px 30px;
     display: flex;
     justify-content: space-between;
@@ -70,30 +72,35 @@ body {
 
 /* Custom Leather Buttons */
 .leather-btn {
-    background: linear-gradient(to bottom, var(--saddle-orange), var(--saddle-hover));
-    color: white;
-    border: 2px solid #8B0000;
+    background: var(--saddle-orange);
+    color: var(--parchment);
+    border: 2px solid var(--text-dark);
     border-radius: var(--radius-sm);
     padding: 10px 20px;
-    font-family: var(--font-heading);
+    font-family: var(--font-body);
+    font-weight: 700;
     font-size: 1.1rem;
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 4px 6px rgba(0,0,0,0.4);
+    box-shadow: 2px 2px 0 var(--text-dark);
     text-transform: uppercase;
     letter-spacing: 1px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     transition: all 0.2s;
 }
 
 .leather-btn:hover {
-    background: linear-gradient(to bottom, var(--saddle-hover), #9E2A0B);
-    transform: translateY(1px);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.4);
+    background: var(--saddle-hover);
+    transform: translateY(-1px) translateX(-1px);
+    box-shadow: 3px 3px 0 var(--text-dark);
+}
+
+.leather-btn:active {
+    transform: translateY(2px) translateX(2px);
+    box-shadow: 0 0 0 var(--text-dark);
 }
 
 .leather-btn.secondary {
-    background: linear-gradient(to bottom, var(--leather-light), var(--leather-medium));
-    border-color: #3E2723;
+    background: var(--leather-medium);
+    border-color: var(--text-dark);
 }
 
 /* Layout */
@@ -123,7 +130,7 @@ body {
 
 /* Western Book Cards (Parchment Style) */
 .book-card {
-    background-color: var(--parchment);
+    background-color: var(--leather-dark);
     color: var(--text-dark);
     border-radius: var(--radius-sm);
     border: 2px solid var(--text-dark);
@@ -159,11 +166,12 @@ body {
 }
 
 .book-title {
-    font-family: var(--font-heading);
+    font-family: var(--font-body);
+    font-weight: 700;
     font-size: 1.2rem;
     margin-bottom: 5px;
     line-height: 1.2;
-    color: var(--leather-dark);
+    color: var(--text-dark);
 }
 
 .book-author {
@@ -203,27 +211,37 @@ body {
 
 .action-btn {
     flex: 1;
-    background: var(--leather-medium);
-    color: var(--parchment);
-    border: none;
+    background: var(--parchment);
+    color: var(--text-dark);
+    border: 2px solid var(--text-dark);
     padding: 8px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     font-family: var(--font-body);
-    font-weight: bold;
+    font-weight: 700;
     font-size: 0.85rem;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    box-shadow: 2px 2px 0 var(--text-dark);
 }
 
 .action-btn:hover {
     background: var(--leather-dark);
+    transform: translateY(-1px) translateX(-1px);
+    box-shadow: 3px 3px 0 var(--text-dark);
+}
+
+.action-btn:active {
+    transform: translateY(2px) translateX(2px);
+    box-shadow: 0 0 0 var(--text-dark);
 }
 
 .action-btn.find-similar {
     background: var(--saddle-orange);
+    color: var(--parchment);
 }
 .action-btn.find-similar:hover {
     background: var(--saddle-hover);
+    color: var(--parchment);
 }
 
 /* Modals */
@@ -271,9 +289,11 @@ body {
 
 .modal h2 {
     font-family: var(--font-heading);
+    color: var(--saddle-orange);
+    text-shadow: 1px 1px 0px var(--text-dark);
+    font-size: 2.5rem;
     margin-bottom: 20px;
-    color: var(--leather-dark);
-    border-bottom: 2px solid var(--leather-medium);
+    border-bottom: 2px solid var(--text-dark);
     padding-bottom: 10px;
 }
 
