@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function renderBooks() {
         currentlyReadingGrid.innerHTML = '';
+        const reading = allBooks.filter(b => b.status === 'currently-reading');
         const toRead = allBooks.filter(b => b.status === 'to-read');
         const read = allBooks.filter(b => b.status === 'read');
         
