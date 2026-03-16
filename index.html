@@ -2,20 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Reading Wrangler</title>
-    <!-- PWA meta tags -->
+    
+    <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Wrangler">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    
+    <!-- PWA meta tags -->
     <meta name="theme-color" content="#3E2723">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="./icon-192.png">
     
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Cowboy themed fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -25,23 +27,20 @@
         <nav class="top-nav wood-panel">
             <div class="logo">
                 <i class="fa-solid fa-hat-cowboy"></i>
-                <h1>Reading Wrangler</h1>
-            </div>
-            <div class="nav-actions">
-                <button id="add-book-btn" class="leather-btn"><i class="fa-solid fa-plus"></i> Lasso a Book</button>
+                <h1>Wrangler</h1>
             </div>
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Search / Add Book Modal Overlay -->
+        <main class="main-content" id="main-scroll-area">
+            <!-- Search Modal Overlay -->
             <div id="search-modal" class="modal hidden">
                 <div class="modal-content parchment-bg">
                     <span class="close-btn">&times;</span>
-                    <h2>Search the Trail (Google Books)</h2>
+                    <h2>Search the Trail</h2>
                     <div class="search-bar">
-                        <input type="text" id="google-search-input" placeholder="Enter title or author (e.g., Lonesome Dove)">
-                        <button id="google-search-btn" class="leather-btn"><i class="fa-solid fa-search"></i> Search</button>
+                        <input type="text" id="google-search-input" placeholder="Title or author...">
+                        <button id="google-search-btn" class="leather-btn"><i class="fa-solid fa-search"></i></button>
                     </div>
                     <div id="search-results" class="results-grid"></div>
                 </div>
@@ -52,45 +51,72 @@
                 <div class="modal-content parchment-bg">
                     <span class="close-btn" id="close-similar-btn">&times;</span>
                     <h2>Similar Finds</h2>
-                    <p class="subtitle">Here’s some books similar to <span id="similar-target-title" style="font-weight:bold;"></span></p>
+                    <p class="subtitle">Books similar to <span id="similar-target-title" style="font-weight:bold;"></span></p>
                     <div id="similar-results" class="results-grid"></div>
                     <div class="modal-footer">
-                        <button id="cycle-similar-btn" class="leather-btn secondary"><i class="fa-solid fa-rotate-right"></i> Cycle More</button>
+                        <button id="cycle-similar-btn" class="leather-btn secondary">Cycle More</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Currently Reading Section -->
-            <section class="book-section">
-                <h2 class="section-title"><i class="fa-solid fa-fire"></i> Currently Reading</h2>
-                <div id="currently-reading-grid" class="book-list">
-                    <p class="empty-msg">No books currently on the trail.</p>
-                </div>
-            </section>
+            <div id="content-views">
+                <!-- Currently Reading Section -->
+                <section id="view-reading" class="view">
+                    <h2 class="section-title"><i class="fa-solid fa-fire"></i> On the Trail</h2>
+                    <div id="currently-reading-grid" class="book-list">
+                        <p class="empty-msg">No books on the trail.</p>
+                    </div>
+                </section>
 
-            <!-- To Read Section -->
-            <section class="book-section">
-                <h2 class="section-title"><i class="fa-solid fa-list-check"></i> To Read</h2>
-                <div id="to-read-grid" class="book-list">
-                    <div class="loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Rounding up books...</div>
-                </div>
-            </section>
-            
-            <!-- Read Section -->
-            <section class="book-section">
-                <h2 class="section-title"><i class="fa-solid fa-book-journal-whills"></i> Read</h2>
-                <div id="read-grid" class="book-list">
-                    <div class="loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Rounding up books...</div>
-                </div>
-            </section>
+                <!-- To Read Section -->
+                <section id="view-corral" class="view hidden">
+                    <h2 class="section-title"><i class="fa-solid fa-list-check"></i> The Corral</h2>
+                    <div id="to-read-grid" class="book-list"></div>
+                </section>
+                
+                <!-- Read Section -->
+                <section id="view-finished" class="view hidden">
+                    <h2 class="section-title"><i class="fa-solid fa-check-double"></i> Settled</h2>
+                    <div id="read-grid" class="book-list"></div>
+                </section>
+            </div>
         </main>
+
+        <!-- iOS Style Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-view="reading">
+                <i class="fa-solid fa-horse"></i>
+                <span>Trail</span>
+            </button>
+            <button class="nav-item" data-view="corral">
+                <i class="fa-solid fa-warehouse"></i>
+                <span>Corral</span>
+            </button>
+            <button id="add-book-tab" class="nav-item plus-btn">
+                <div class="plus-circle"><i class="fa-solid fa-plus"></i></div>
+            </button>
+            <button class="nav-item" data-view="finished">
+                <i class="fa-solid fa-scroll"></i>
+                <span>Settled</span>
+            </button>
+            <button class="nav-item" data-view="search-trigger">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Search</span>
+            </button>
+        </nav>
     </div>
     
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=7"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js');
         }
+        // Prevent body bounce but allow content scrolling
+        document.body.addEventListener('touchmove', function(e) {
+            if (!event.target.closest('#main-scroll-area')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
